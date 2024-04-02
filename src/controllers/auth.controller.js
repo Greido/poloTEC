@@ -1,6 +1,6 @@
 import User from "../schemas/user.model.js";
 import bcrypt from "bcryptjs";
-//import { createAccessToken } from "../libs/jwt.js";
+import { createAccessToken } from "../libs/jwt.js";
 import jwt from "jsonwebtoken";
 
 export const register = async (req, res) => {
@@ -16,6 +16,13 @@ export const register = async (req, res) => {
     });
 
     const userSaved = await newUser.save();
+
+    jwt.sign(
+      {
+        id: userSaved._id,
+      },
+      "secret123"
+    );
 
     res.json({
       id: userSaved._id,
