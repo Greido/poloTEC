@@ -64,6 +64,16 @@ export const logout = (req, res) => {
   return res.sendStatus(200);
 };
 
-export const profile = (req, res) => {
+export const profile = async (req, res) => {
+  const UserFound = await User.findById(req.user.id);
+
+  if (!UserFound) {
+    return res.status(400).json({ message: "User not found" });
+  }
+  return res.json({
+    id: UserFound._id,
+    username: UserFound.username,
+    emai: UserFound.email,
+  });
   res.send("profile");
 };
