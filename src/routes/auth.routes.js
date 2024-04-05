@@ -5,6 +5,9 @@ import {
   logout,
   profile,
 } from "../controllers/auth.controller.js";
+//Companies functions
+
+import { enterpriseRegister } from "../controllers/enterprise.controller.js";
 
 import { validateRequired } from "../middlewares/validateToken.js";
 
@@ -14,4 +17,13 @@ router.post("/register", register);
 router.post("/login", login);
 router.post("/logout", logout);
 router.get("/profile", validateRequired, profile);
+
+/* Routes for companies 
+
+  abbreviation as "CO" 
+
+*/
+
+router.post("/coregister", enterpriseRegister);
+
 export default router;
