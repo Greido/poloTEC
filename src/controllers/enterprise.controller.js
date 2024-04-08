@@ -31,3 +31,13 @@ export const enterpriseRegister = async (req, res) => {
       .json({ message: "Ocurrió un error al registrar la empresa." });
   }
 };
+
+export const enterpriseLogin = async (req, res) => {
+  const { cuil, password } = req.body;
+
+  try {
+    const CompanyFound = await Enterprise.findOne({ cuil });
+    if (!CompanyFound)
+      return res.status(400).json({ message: "Empresa no encontrada" });
+  } catch (error) {}
+};
