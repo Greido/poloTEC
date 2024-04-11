@@ -20,6 +20,10 @@ const enterpriseSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
+  image: {
+    data: Buffer,
+    contentType: String,
+  },
 });
 
 export default mongoose.model("Enterprise", enterpriseSchema);
