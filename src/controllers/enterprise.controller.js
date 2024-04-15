@@ -9,15 +9,15 @@ export const enterpriseRegister = async (req, res) => {
     if (!email || !password || !name || !cuil) {
       return res
         .status(400)
-        .json({ message: "Falta uno o mas campos requeridos" });
+        .json({ message: "Falta uno o más campos requeridos" });
     }
 
-    const existinEnterprise = await Enterprise.findOne({ email });
+    const existingEnterprise = await Enterprise.findOne({ email });
 
-    if (existinEnterprise) {
+    if (existingEnterprise) {
       return res
-        .status(400)
-        .json({ message: "El correo electronico ya esta registrado" });
+        .status(403)
+        .json({ message: "El correo electrónico ya está registrado" });
     }
 
     const passwordHash = await bcrypt.hash(password, 10);
@@ -41,7 +41,7 @@ export const enterpriseRegister = async (req, res) => {
     res.json({
       id: enterpriseSaved._id,
       name: enterpriseSaved.name,
-      message: "Enterprise register successful",
+      message: "Registro de empresa exitoso",
     });
   } catch (error) {
     console.error("Error al registrar la empresa:", error);

@@ -6,6 +6,14 @@ export const register = async (req, res) => {
   const { email, password, username } = req.body;
 
   try {
+    const existingUser = await User.findOne({ email });
+
+    if (existingUser) {
+      return res
+        .status(202)
+        .json({ message: "El correo electrónico ya está registrado" });
+    }
+
     const passwordHash = await bcrypt.hash(password, 10);
 
     const newUser = new User({
@@ -23,10 +31,13 @@ export const register = async (req, res) => {
       id: userSaved._id,
       username: userSaved.username,
       email: userSaved.email,
-      message: "Register successful",
+      message: "Registro exitoso",
     });
   } catch (error) {
-    console.log(error);
+    console.error("Error al registrar el usuario:", error);
+    res
+      .status(500)
+      .json({ message: "Ocurrió un error al registrar el usuario." });
   }
 };
 
@@ -76,4 +87,9 @@ export const profile = async (req, res) => {
     emai: UserFound.email,
   });
   res.send("profile");
+};
+
+export const seeAllUsers = async (req, res) => {
+  const users = await User.find();
+  res.json(users);
 };
