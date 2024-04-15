@@ -20,6 +20,7 @@ router.post("/logout", logout);
 router.get("/profile", validateRequired, profile);
 router.get("/allUsers", seeAllUsers);
 router.get("/registerdata", registerData);
+
 /* Routes for companies 
 
   abbreviation as "CO" 
