@@ -4,10 +4,14 @@ import {
   register,
   logout,
   profile,
+  seeAllUsers,
 } from "../controllers/auth.controller.js";
 //Companies functions
 
-import { enterpriseRegister } from "../controllers/enterprise.controller.js";
+import {
+  enterpriseRegister,
+  enterpriseLogin,
+} from "../controllers/enterprise.controller.js";
 
 import { validateRequired } from "../middlewares/validateToken.js";
 
@@ -17,6 +21,7 @@ router.post("/register", register);
 router.post("/login", login);
 router.post("/logout", logout);
 router.get("/profile", validateRequired, profile);
+router.get("/allUsers", seeAllUsers);
 
 /* Routes for companies 
 
@@ -25,5 +30,5 @@ router.get("/profile", validateRequired, profile);
 */
 
 router.post("/coregister", enterpriseRegister);
-
+router.post("/cologin", enterpriseLogin);
 export default router;

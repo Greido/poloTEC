@@ -7,7 +7,15 @@ export const register = async (req, res) => {
   const { email, password, username } = req.body;
 
   try {
-    // Genera el hash de la contraseña usando bcrypt con un factor de coste de 10
+    // Verifica si el correo electrónico ya está registrado en la base de datos
+    const existingUser = await User.findOne({ email });
+
+    if (existingUser) {
+      return res
+        .status(203)
+        .json({ message: "El correo electrónico ya está registrado" });
+    }
+
     const passwordHash = await bcrypt.hash(password, 10);
 
     // Crea una nueva instancia de usuario con el nombre de usuario, correo electrónico y contraseña hash
@@ -27,34 +35,42 @@ export const register = async (req, res) => {
     res.cookie("token", token);
 
     // Responde con la información básica del usuario recién registrado
-    res.json({
+    res.status(200).json({
       id: userSaved._id,
       username: userSaved.username,
       email: userSaved.email,
-      message: "Register successful",
+      message: "Registro exitoso",
     });
   } catch (error) {
-    // Maneja cualquier error ocurrido durante el proceso de registro
     console.log(error);
   }
 };
 
 export const login = async (req, res) => {
+  // Destructure email and password from the request body
   const { email, password } = req.body;
 
   try {
+    // Find a user with the provided email
     const userFound = await User.findOne({ email });
 
+    // If no user is found, return a 400 status with a "Not found" message
     if (!userFound) return res.status(400).json({ message: "Not found" });
 
+    // Compare the provided password with the user's stored password
     const isMatch = await bcrypt.compare(password, userFound.password);
 
+    // If the passwords do not match, return a 400 status with an "Incorrect password" message
     if (!isMatch)
       return res.status(400).json({ message: "Incorrect password" });
 
+    // Create an access token for the user
     const token = await createAccessToken({ id: userFound._id });
+
+    // Set a cookie with the token
     res.cookie("token", token);
 
+    // Return a JSON response with the user's details and a "Login successful" message
     res.json({
       id: userFound._id,
       username: userFound.username,
@@ -62,6 +78,7 @@ export const login = async (req, res) => {
       message: "Login successful",
     });
   } catch (error) {
+    // Log any errors that occur
     console.log(error);
   }
 };
@@ -85,4 +102,9 @@ export const profile = async (req, res) => {
     emai: UserFound.email,
   });
   res.send("profile");
+};
+
+export const seeAllUsers = async (req, res) => {
+  const users = await User.find();
+  res.json(users);
 };
