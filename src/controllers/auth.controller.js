@@ -1,9 +1,8 @@
 import User from "../schemas/user.model.js";
-import BasicData from "../schemas/basicData.model.js";
 import bcrypt from "bcryptjs";
 import { createAccessToken } from "../libs/jwt.js";
 import mongoose from "mongoose";
-import e from "express";
+import nodemailer from "nodemailer";
 
 export const register = async (req, res) => {
   // Extrae el correo electrónico, la contraseña y el nombre de usuario del cuerpo de la solicitud
@@ -18,6 +17,46 @@ export const register = async (req, res) => {
         .status(203)
         .json({ message: "El correo electrónico ya está registrado" });
     }
+
+    // Crea una instancia del transporter de Nodemailer con las credenciales de autenticación
+    const transporter = nodemailer.createTransport({
+      service: "gmail",
+      auth: {
+        user: "juanpablocorzobarrera@gmail.com", // Reemplaza con tu dirección de correo electrónico
+        pass: "jxdg cdtb ryiv qjdt", // Reemplaza con tu contraseña de correo electrónico
+      },
+    });
+
+    // Función para enviar correo electrónico
+    const enviarCorreo = (destinatario, asunto, mensaje) => {
+      const mailOptions = {
+        from: "juanpablocorzobarrera@gmail.com", // Reemplaza con tu dirección de correo electrónico
+        to: `${email}`,
+        subject: "Registro exitoso",
+        html: `
+        <div style="font-family: Arial, sans-serif; background-color: #f4f4f4; padding: 20px;">
+          <h2 style="color: #333;">Registro completado</h2>
+          <p style="color: #555; font-size: 16px;">Bienvenido a la bolsa de trabajo</p>
+          <p style="color: #777; font-size: 14px;">Gracias por registrarte en nuestra aplicación.</p>
+        </div>
+      `,
+      };
+
+      transporter.sendMail(mailOptions, (error, info) => {
+        if (error) {
+          console.log(error);
+        } else {
+          console.log("Correo electrónico enviado: " + info.response);
+        }
+      });
+    };
+
+    // Llama a la función enviarCorreo para enviar un correo electrónico de registro
+    enviarCorreo(
+      email,
+      "Registro exitoso",
+      "¡Gracias por registrarte en nuestra aplicación!"
+    );
 
     const passwordHash = await bcrypt.hash(password, 10);
 
@@ -42,10 +81,15 @@ export const register = async (req, res) => {
       id: userSaved._id,
       username: userSaved.username,
       email: userSaved.email,
-      message: "Registro exitoso",
+      message:
+        "Registro exitoso. Se ha enviado un correo electrónico de confirmación.",
     });
   } catch (error) {
     console.log(error);
+    res.status(500).json({
+      message:
+        "Error en el registro de usuario. Por favor, inténtalo de nuevo.",
+    });
   }
 };
 
@@ -219,22 +263,7 @@ export const AnidaDocumentos = async (req, res) => {
   });
 }; */
 
-const basicData = async (req, res) => {
-  const { userId, name, surname /* otros campos */ } = req.body;
-
-  try {
-    const basicData = await BasicData.create({
-      user: userId,
-      name,
-      surname,
-      /* otros campos */
-    });
-    res.status(201).json(basicData);
-  } catch (error) {
-    res
-      .status(500)
-      .json({ error: "Error al crear datos básicos", details: error.message });
-  }
+export const sendEmail = async (req, res) => {
+  console.log(req.body);
+  res.recibido;
 };
-
-export { basicData };
