@@ -4,6 +4,7 @@ import { createAccessToken } from "../libs/jwt.js";
 import mongoose from "mongoose";
 import nodemailer from "nodemailer";
 
+// Exporta la función de registro de usuario
 export const register = async (req, res) => {
   // Extrae el correo electrónico, la contraseña y el nombre de usuario del cuerpo de la solicitud
   const { email, password, username } = req.body;
@@ -93,6 +94,8 @@ export const register = async (req, res) => {
   }
 };
 
+
+// Exporta la función de inicio de sesión de usuario
 export const login = async (req, res) => {
   // Destructure email and password from the request body
   const { email, password } = req.body;
@@ -130,6 +133,8 @@ export const login = async (req, res) => {
   }
 };
 
+
+//Exporta la función de cierre de sesión de usuario
 export const logout = (req, res) => {
   res.cookie("token", "", {
     expires: new Date(0),
@@ -137,6 +142,8 @@ export const logout = (req, res) => {
   return res.sendStatus(200);
 };
 
+
+//Exporta la función de perfil de usuario
 export const profile = async (req, res) => {
   const UserFound = await User.findById(req.user.id);
 
@@ -151,11 +158,15 @@ export const profile = async (req, res) => {
   res.send("profile");
 };
 
+
+//Exporta la función de ver todos los usuarios
 export const seeAllUsers = async (req, res) => {
   const users = await User.find();
   res.json(users);
 };
 
+
+//Exporta la función de ver un usuario
 export const deleteUser = async (req, res) => {
   const { id } = req.params;
   if (!mongoose.Types.ObjectId.isValid(id)) {
@@ -166,104 +177,18 @@ export const deleteUser = async (req, res) => {
   res.json({ message: "User deleted successfully" });
 };
 
-/* export const VerificaAnidacion = async (req, res) => {
+//Exporta la función de ver un usuario
+export const updateUser = async (req, res) => {
+  const { id } = req.params;
+  if (!mongoose.Types.ObjectId.isValid(id)) {
+    return res.status(400).json({ message: "Invalid ID" });
+  }
+
   try {
-    const basicData = await BasicData.find().populate("user");
-    if (!basicData) {
-      console.log("No hay datos");
-      return;
-    }
-
-    // Verifica si la referencia al usuario está establecida correctamente
-    if (!basicData.user) {
-      console.log(
-        "La referencia al usuario no está establecida correctamente en el documento de BasicData."
-      );
-      return;
-    }
-
-    console.log("La anidación está correctamente establecida.");
+    const updatedUser = await User.findByIdAndUpdate(id, req.body, {new: true,});
+    res.json({ message: "User updated successfully", User: updatedUser });
   } catch (error) {
-    console.error("Error al verificar la anidación:", error);
-  }
-}; */
-
-export const AnidaDocumentos = async (req, res) => {
-  const resultado = await User.aggregate([
-    {
-      $lookup: {
-        from: "basicdatas",
-        localField: "basicdata",
-        foreignField: "_id",
-        as: "user",
-      },
-    },
-  ]);
-
-  console.log(resultado);
-};
-//AnidaDocumentos();
-
-// Función para guardar los datos de basicData
-/* export const basicData = async (req, res) => {
-  const {
-    name,
-    surname,
-    localidad,
-    educacion,
-    titulos,
-    fechaNacimiento,
-    areaInteres,
-    genero,
-    cursos,
-    phone,
-    residencia,
-    email,
-  } = req.body;
-
-  const existingData = await BasicData.findOne({ email });
-
-  if (existingData) {
-    return res
-      .status(200)
-      .json({ message: "El correo electrónico ya está registrado" });
-  }
-
-  const newBasicData = new BasicData({
-    name,
-    surname,
-    localidad,
-    educacion,
-    titulos,
-    fechaNacimiento,
-    areaInteres,
-    genero,
-    cursos,
-    phone,
-    residencia,
-    email,
-  });
-
-  const basicDataSaved = await newBasicData.save();
-
-  // Actualiza el documento User con la referencia al documento BasicData
-  const user = new User({
-    // Aquí puedes incluir los campos del usuario si los tienes disponibles en req.body
-    basicdata: basicDataSaved._id, // Asigna la referencia al documento BasicData
-  });
-
-  await user.save();
-
-  // Responde con la información básica del usuario recién registrado
-  res.status(200).json({
-    id: basicDataSaved._id,
-    name: basicDataSaved.name,
-    surname: basicDataSaved.surname,
-    message: "Registro exitoso",
-  });
-}; */
-
-export const sendEmail = async (req, res) => {
-  console.log(req.body);
-  res.recibido;
-};
+  console.log(error);
+  return res.status(500).json({ message: "Error updating user" ,error: error.message});
+}
+}

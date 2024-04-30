@@ -5,7 +5,7 @@ import {
   logout,
   profile,
   seeAllUsers,
-  sendEmail,
+  updateUser,
 } from "../controllers/auth.controller.js";
 //Companies functions
 
@@ -23,8 +23,8 @@ router.post("/login", login);
 router.post("/logout", logout);
 router.get("/profile", validateRequired, profile);
 router.get("/allUsers", seeAllUsers);
+router.put("/update/:id", updateUser);
 
-router.post("/send-email", sendEmail);
 
 /* Routes for companies 
 

@@ -1,4 +1,4 @@
-import mongoose from "mongoose";
+/* import mongoose from "mongoose";
 import User from "./user.model.js";
 
 const basicDataSchema = new mongoose.Schema({
@@ -61,3 +61,4 @@ const basicDataSchema = new mongoose.Schema({
 const BasicData = mongoose.model("BasicData", basicDataSchema);
 
 export default BasicData;
+ */
