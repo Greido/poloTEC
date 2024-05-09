@@ -1,6 +1,8 @@
 import User from "../schemas/user.model.js";
 import bcrypt from "bcryptjs";
 import { createAccessToken } from "../libs/jwt.js";
+import mongoose from "mongoose";
+import nodemailer from "nodemailer";
 
 export const register = async (req, res) => {
   // Extrae el correo electrónico, la contraseña y el nombre de usuario del cuerpo de la solicitud
@@ -15,6 +17,46 @@ export const register = async (req, res) => {
         .status(203)
         .json({ message: "El correo electrónico ya está registrado" });
     }
+
+    // Crea una instancia del transporter de Nodemailer con las credenciales de autenticación
+    const transporter = nodemailer.createTransport({
+      service: "gmail",
+      auth: {
+        user: "juanpablocorzobarrera@gmail.com", // Reemplaza con tu dirección de correo electrónico
+        pass: "jxdg cdtb ryiv qjdt", // Reemplaza con tu contraseña de correo electrónico
+      },
+    });
+
+    // Función para enviar correo electrónico
+    const enviarCorreo = (destinatario, asunto, mensaje) => {
+      const mailOptions = {
+        from: "juanpablocorzobarrera@gmail.com", // Reemplaza con tu dirección de correo electrónico
+        to: `${email}`,
+        subject: "Registro exitoso",
+        html: `
+        <div style="font-family: Arial, sans-serif; background-color: #f4f4f4; padding: 20px;">
+          <h2 style="color: #333;">Registro completado</h2>
+          <p style="color: #555; font-size: 16px;">Bienvenido a la bolsa de trabajo</p>
+          <p style="color: #777; font-size: 14px;">Gracias por registrarte en nuestra aplicación.</p>
+        </div>
+      `,
+      };
+
+      transporter.sendMail(mailOptions, (error, info) => {
+        if (error) {
+          console.log(error);
+        } else {
+          console.log("Correo electrónico enviado: " + info.response);
+        }
+      });
+    };
+
+    // Llama a la función enviarCorreo para enviar un correo electrónico de registro
+    enviarCorreo(
+      email,
+      "Registro exitoso",
+      "¡Gracias por registrarte en nuestra aplicación!"
+    );
 
     const passwordHash = await bcrypt.hash(password, 10);
 
@@ -39,10 +81,15 @@ export const register = async (req, res) => {
       id: userSaved._id,
       username: userSaved.username,
       email: userSaved.email,
-      message: "Registro exitoso",
+      message:
+        "Registro exitoso. Se ha enviado un correo electrónico de confirmación.",
     });
   } catch (error) {
     console.log(error);
+    res.status(500).json({
+      message:
+        "Error en el registro de usuario. Por favor, inténtalo de nuevo.",
+    });
   }
 };
 
@@ -107,4 +154,116 @@ export const profile = async (req, res) => {
 export const seeAllUsers = async (req, res) => {
   const users = await User.find();
   res.json(users);
+};
+
+export const deleteUser = async (req, res) => {
+  const { id } = req.params;
+  if (!mongoose.Types.ObjectId.isValid(id)) {
+    return res.status(400).json({ message: "Invalid ID" });
+  }
+
+  await User.findByIdAndDelete(id);
+  res.json({ message: "User deleted successfully" });
+};
+
+/* export const VerificaAnidacion = async (req, res) => {
+  try {
+    const basicData = await BasicData.find().populate("user");
+    if (!basicData) {
+      console.log("No hay datos");
+      return;
+    }
+
+    // Verifica si la referencia al usuario está establecida correctamente
+    if (!basicData.user) {
+      console.log(
+        "La referencia al usuario no está establecida correctamente en el documento de BasicData."
+      );
+      return;
+    }
+
+    console.log("La anidación está correctamente establecida.");
+  } catch (error) {
+    console.error("Error al verificar la anidación:", error);
+  }
+}; */
+
+export const AnidaDocumentos = async (req, res) => {
+  const resultado = await User.aggregate([
+    {
+      $lookup: {
+        from: "basicdatas",
+        localField: "basicdata",
+        foreignField: "_id",
+        as: "user",
+      },
+    },
+  ]);
+
+  console.log(resultado);
+};
+//AnidaDocumentos();
+
+// Función para guardar los datos de basicData
+/* export const basicData = async (req, res) => {
+  const {
+    name,
+    surname,
+    localidad,
+    educacion,
+    titulos,
+    fechaNacimiento,
+    areaInteres,
+    genero,
+    cursos,
+    phone,
+    residencia,
+    email,
+  } = req.body;
+
+  const existingData = await BasicData.findOne({ email });
+
+  if (existingData) {
+    return res
+      .status(200)
+      .json({ message: "El correo electrónico ya está registrado" });
+  }
+
+  const newBasicData = new BasicData({
+    name,
+    surname,
+    localidad,
+    educacion,
+    titulos,
+    fechaNacimiento,
+    areaInteres,
+    genero,
+    cursos,
+    phone,
+    residencia,
+    email,
+  });
+
+  const basicDataSaved = await newBasicData.save();
+
+  // Actualiza el documento User con la referencia al documento BasicData
+  const user = new User({
+    // Aquí puedes incluir los campos del usuario si los tienes disponibles en req.body
+    basicdata: basicDataSaved._id, // Asigna la referencia al documento BasicData
+  });
+
+  await user.save();
+
+  // Responde con la información básica del usuario recién registrado
+  res.status(200).json({
+    id: basicDataSaved._id,
+    name: basicDataSaved.name,
+    surname: basicDataSaved.surname,
+    message: "Registro exitoso",
+  });
+}; */
+
+export const sendEmail = async (req, res) => {
+  console.log(req.body);
+  res.recibido;
 };
