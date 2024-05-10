@@ -1,6 +1,5 @@
 import { Router } from "express";
-import express from 'express';
-import { uploadMiddleware, uploadFile } from './upload.controller.js';
+import { uploadMiddleware, uploadFile } from '../controllers/upload.controller.js';
 
 
 
