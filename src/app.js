@@ -1,6 +1,7 @@
 import express from "express";
 import morgan from "morgan";
 import authRoutes from "./routes/auth.routes.js";
+import basicData from './routes/basicData.routes.js';
 import routes from "./routes/routes.js"
 import dotenv from "dotenv";
 import cookieParser from "cookie-parser";
@@ -27,5 +28,6 @@ app.use(express.json());
 
 app.use("/api", authRoutes);
 app.use("/api", routes);
+app.use('/api',  basicData);
 
 export default app;

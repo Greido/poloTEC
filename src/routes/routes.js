@@ -5,6 +5,6 @@ import { uploadMiddleware, uploadFile } from '../controllers/upload.controller.j
 
 const router = Router();
 
-router.post('/upload', uploadMiddleware, uploadFile);
+router.post('/upload', uploadFile);
 
 export default router;
