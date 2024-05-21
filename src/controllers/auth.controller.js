@@ -1,4 +1,5 @@
 import User from "../schemas/user.model.js";
+import basicData from "../schemas/basicData.model.js";
 import bcrypt from "bcryptjs";
 import { createAccessToken } from "../libs/jwt.js";
 import mongoose from "mongoose";
