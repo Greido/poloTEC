@@ -1,10 +1,9 @@
-import mongoose from "mongoose";
+import mongoose from 'mongoose';
 
 const enterpriseSchema = new mongoose.Schema({
   name: {
     type: String,
     required: true,
-    trim: true,
   },
   email: {
     type: String,
@@ -20,6 +19,15 @@ const enterpriseSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
+  role: {
+    type: String,
+    enum: ['admin', 'ent'],
+    default: 'ent', 
+  },
+  resetPasswordToken: String,
+  resetPasswordExpires: Date,
 });
 
-export default mongoose.model("Enterprise", enterpriseSchema);
+const Enterprise = mongoose.model('Enterprise', enterpriseSchema);
+
+export default Enterprise;

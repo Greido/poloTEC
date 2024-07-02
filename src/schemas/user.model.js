@@ -1,6 +1,9 @@
-import mongoose from "mongoose";
+import mongoose from 'mongoose';
+import bcrypt from 'bcryptjs';
 
-const userSchema = new mongoose.Schema({
+const { Schema } = mongoose;
+
+const userSchema = new Schema({
   username: {
     type: String,
     required: true,
@@ -15,9 +18,26 @@ const userSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
-  author: {
-    type: mongoose.Schema.Types.ObjectId,
+  role: {
+    type: String,
+    enum: ['admin', 'user'],
+    default: 'user',
   },
+  resetPasswordToken: String,
+  resetPasswordExpires: Date,
 });
 
-export default mongoose.model("User", userSchema);
+userSchema.pre('save', async function (next) {
+  try {
+    if (!this.isModified('password')) {
+      return next();
+    }
+    const hashedPassword = await bcrypt.hash(this.password, 10);
+    this.password = hashedPassword;
+    return next();
+  } catch (error) {
+    return next(error);
+  }
+});
+
+export default mongoose.model('User', userSchema);

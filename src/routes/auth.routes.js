@@ -1,4 +1,4 @@
-import { Router } from "express";
+import { Router } from 'express';
 import {
   login,
   register,
@@ -6,32 +6,22 @@ import {
   profile,
   seeAllUsers,
   sendEmail,
-} from "../controllers/auth.controller.js";
-//Companies functions
-
-import {
-  enterpriseRegister,
-  enterpriseLogin,
-} from "../controllers/enterprise.controller.js";
-
-import { validateRequired } from "../middlewares/validateToken.js";
+  forgotPassword,
+  resetPassword,
+} from '../controllers/auth.controller.js';
+import { validateRequired } from '../middlewares/validateToken.js';
 
 const router = Router();
 
-router.post("/register", register);
-router.post("/login", login);
-router.post("/logout", logout);
-router.get("/profile", validateRequired, profile);
-router.get("/allUsers", seeAllUsers);
+router.post('/register', register);
+router.post('/login', login);
+router.post('/logout', logout);
+router.get('/profile', validateRequired, profile);
+router.get('/allUsers', seeAllUsers);
+router.post('/send-email', sendEmail);
 
-router.post("/send-email", sendEmail);
+// Rutas para la recuperación de contraseña
+router.post('/forgot-password', forgotPassword);
+router.post('/reset-password', resetPassword);
 
-/* Routes for companies 
-
-  abbreviation as "CO" 
-
-*/
-
-router.post("/coregister", enterpriseRegister);
-router.post("/cologin", enterpriseLogin);
 export default router;
