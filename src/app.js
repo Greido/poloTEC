@@ -9,11 +9,10 @@ import cors from "cors";
 
 const app = express();
 
-app.use(cookieParser());
 
 app.use(
   cors({
-    origin: "http://localhost:4000",
+    origin: "http://localhost:3000",
     credentials: true,
   })
 );
@@ -25,6 +24,7 @@ dotenv.config();
 app.use(morgan("dev"));
 
 app.use(express.json());
+app.use(cookieParser());
 
 app.use("/api", authRoutes);
 app.use("/api", routes);

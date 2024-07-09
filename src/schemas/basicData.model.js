@@ -1,11 +1,10 @@
 import mongoose from "mongoose";
-import User from "./user.model.js";
-import { boolean } from "yup";
+import User from "../schemas/user.model.js";
 
 const basicDataSchema = new mongoose.Schema({
   user: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: "User",
+    ref: User,
   },
   name: {
     type: String,
@@ -21,29 +20,25 @@ const basicDataSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
-  educacion: {
+  educacion: {  
     type: String,
     required: true,
   },
   titulos: {
     type: String,
-    required: true,
   },
   fechaNacimiento: {
-    type: Date,
+    type: String,
     required: true,
   },
   areaInteres: {
     type: String,
-    required: true,
   },
   genero: {
     type: String,
-    required: true,
   },
   cursos: {
     type: String,
-    required: true,
   },
   phone: {
     type: String,
@@ -78,53 +73,44 @@ const basicDataSchema = new mongoose.Schema({
     }
   }],
   experienciaSO: [{
-    nombreSO: {
-      type: String,
-      enum: ['Linux', 'IOS', 'WindowsServer','Android']
+    nombreSO: { 
+      type: String, 
+      enum: ['Windows', 'Linux', 'macOS', 'iOS'], 
+      required: true 
     },
-    nivel: {
-      type: String,
-      enum: ['Básico', 'Intermedio', 'Avanzado']
+    nivel: { 
+      type: String, 
+      enum: ['Básico', 'Intermedio', 'Avanzado'], 
+      required: true 
     }
   }],
   experienciaHG: [{
-    nombreHG: {
-      type: String,
-      enum: ['Sistema de Información Geográfico', 'Computacion en la Nube', 'Project Management Institute','Repositorio en la Nube','Metodologia Agiles']
+    nombreHG: { 
+      type: String, 
+      enum: ['JIRA', 'Trello', 'Asana', 'Computación en la Nube','Sistema de Información Geográfico', 'Project Management Institute'], 
+      required: true 
     },
-    nivel: {
-      type: String,
-      enum: ['Básico', 'Intermedio', 'Avanzado']
+    nivel: { 
+      type: String, 
+      enum: ['Básico', 'Intermedio', 'Avanzado'], 
+      required: true 
     }
   }],
- conocimientoTec: {
+  
+  conocimientoTec: {
     type: String,
-    required: true,
-   
   },
   experienciaendesarrollo: {
     type: String,
     required: true,
-
   },
   experienciaEnAdministracionyGestiondeSistemas: {
     type: String,
-    required: true,
-   
   },
-debilidadTEC: {
+  debilidadTEC: {
     type: String,
-    required: true,
-  
-  },
-  experienciaSO: {
-    type: String,
-    required: true,
-  
   },
 });
-  
-
 
 const BasicData = mongoose.model("BasicData", basicDataSchema);
 

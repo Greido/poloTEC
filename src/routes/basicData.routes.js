@@ -5,6 +5,7 @@ import {
   getBasicDataById,
   updateBasicDataById,
   deleteBasicDataById,
+  getOptions
 } from "../controllers/basicData.controller.js";
 import { validateBasicData } from "../middlewares/validateBasicData.js";
 
@@ -15,6 +16,8 @@ router.post("/createBasicData", createBasicData);
 
 // Obtener todos los datos básicos
 router.get("/getallBD", getAllBasicData);
+
+router.get('/options', getOptions);
 
 // Obtener un dato básico por ID
 router.get("/getoneBD/:id", getBasicDataById);
