@@ -4,7 +4,7 @@ import User from "../schemas/user.model.js";
 const basicDataSchema = new mongoose.Schema({
   user: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: User,
+    ref: "User",
   },
   name: {
     type: String,

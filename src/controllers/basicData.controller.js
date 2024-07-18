@@ -62,23 +62,24 @@ export const getOptions = (req, res) => {
 
 // Obtener datos básicos por ID
 export const getBasicDataById = async (req, res) => {
+  const { id } = req.params; // El ID del usuario viene como parámetro en la URL
+
   try {
-    console.log("Request cookies:", req.cookies); // Verifica que el token esté presente
-    const token = req.cookies.token;
-    if (!token) {
-      return res.status(401).json({ error: "Access denied, token missing!" });
+    // Verifica si el usuario existe
+    const user = await User.findById(id);
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
     }
 
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    console.log("Decoded token:", decoded); // Verifica que el token esté decodificado correctamente
-
-    const basicData = await BasicData.findById(decoded.id);
+    // Encuentra los datos básicos asociados al usuario
+    const basicData = await BasicData.findOne({ user: id });
     if (!basicData) {
-      return res.status(404).json({ error: "Basic data not found" });
+      return res.status(404).json({ error: "Basic data not found for this user" });
     }
+
     res.status(200).json(basicData);
   } catch (error) {
-    console.error("Error fetching basic data:", error);
+    console.error("Error fetching basic data by user ID:", error);
     res.status(500).json({ error: "Internal server error" });
   }
 };
