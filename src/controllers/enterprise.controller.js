@@ -12,7 +12,7 @@ export const enterpriseRegister = async (req, res) => {
       return res.status(400).json({ message: "Falta uno o más campos requeridos" });
     }
 
-    const validRoles = ['admin', 'ent'];
+    const validRoles = ['admin', 'enterprise'];
     if (!validRoles.includes(role)) {
       return res.status(400).json({ message: "Rol no válido" });
     }
@@ -37,6 +37,35 @@ export const enterpriseRegister = async (req, res) => {
 
     const token = createAccessToken({ id: enterpriseSaved._id, role: enterpriseSaved.role });
     res.cookie("token", token);
+
+    const transporter = nodemailer.createTransport({
+      service: 'gmail',
+      auth: {
+        user: 'juanpablocorzobarrera@gmail.com', // Reemplaza con tu dirección de correo electrónico
+        pass: 'jxdg cdtb ryiv qjdt', // Reemplaza con tu contraseña de correo electrónico
+      },
+    });
+
+    const mailOptions = {
+      from: 'juanpablocorzobarrera@gmail.com', // Reemplaza con tu dirección de correo electrónico
+      to: email,
+      subject: 'Registro exitoso',
+      html: `
+        <div style="font-family: Arial, sans-serif; background-color: #f4f4f4; padding: 20px;">
+          <h2 style="color: #333;">Registro completado</h2>
+          <p style="color: #555; font-size: 16px;">Bienvenido al Polo tecnologico La Rioja</p>
+          <p style="color: #777; font-size: 14px;">Gracias por registrarte en nuestra aplicación.</p>
+        </div>
+      `,
+    };
+
+    transporter.sendMail(mailOptions, (error, info) => {
+      if (error) {
+        console.log(error);
+      } else {
+        console.log('Correo electrónico enviado: ' + info.response);
+      }
+    });
 
     res.status(201).json({
       id: enterpriseSaved._id,
@@ -67,8 +96,12 @@ export const enterpriseLogin = async (req, res) => {
     }
 
     // Incluir el rol en la información del token JWT
-    const token = createAccessToken({ id: enterpriseFound._id, role: 'enterprise' });
-    res.cookie("token", token);
+    const token = createAccessToken({ id: enterpriseFound._id, role: '' });
+    res.cookie('token', token, {
+      httpOnly: true, // La cookie solo debe ser accesible a través del HTTP
+      secure: process.env.NODE_ENV === 'production', // Solo en HTTPS en producción
+      sameSite: 'strict', // Protección contra CSRF
+    });
 
     res.status(200).json({ message: "Inicio de sesión exitoso", token });
   } catch (error) {
@@ -90,7 +123,7 @@ export const enterpriseLogout = async (req, res) => {
 export const enterpriseProfile = async (req, res) => {
   try {
     // Obtener datos del usuario desde el token (middleware validateRequired)
-    const enterprise = res.locals.enterprise;
+    const enterprise = res.session.enterprise;
 
     // Buscar la información detallada de la empresa en la base de datos
     const enterpriseDetails = await Enterprise.findById(enterprise._id).select('-password');

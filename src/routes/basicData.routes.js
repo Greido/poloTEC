@@ -5,8 +5,10 @@ import {
   getBasicDataById,
   updateBasicDataById,
   deleteBasicDataById,
+  getOptions
 } from "../controllers/basicData.controller.js";
 import { validateBasicData } from "../middlewares/validateBasicData.js";
+import { validateRequired } from '../middlewares/validateToken.js'; 
 
 const router = express.Router();
 
@@ -14,10 +16,12 @@ const router = express.Router();
 router.post("/createBasicData", createBasicData);
 
 // Obtener todos los datos básicos
-router.get("/getallBD", getAllBasicData);
+router.get("/getallBD",validateRequired, getAllBasicData);
 
 // Obtener un dato básico por ID
 router.get("/getoneBD/:id", getBasicDataById);
+
+router.get('/options', getOptions);
 
 // Actualizar un dato básico por ID
 router.put("/:id", validateBasicData, updateBasicDataById);

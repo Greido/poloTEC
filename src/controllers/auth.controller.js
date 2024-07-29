@@ -1,72 +1,134 @@
 import bcrypt from 'bcryptjs';
-import jwt from 'jsonwebtoken';
 import nodemailer from 'nodemailer';
 import crypto from 'crypto';
 import User from '../schemas/user.model.js';
 import { createAccessToken } from '../libs/jwt.js';
+import { token } from 'morgan';
 
+// Registro de usuario
 export const register = async (req, res) => {
-  const { username, email, password, role } = req.body; 
+  const { email, password, username, role } = req.body;
 
   try {
-    const existingUser = await User.findOne({ email });
-    if (existingUser) {
-      return res.status(400).json({ message: 'El correo electrónico ya está registrado' });
+    if (!email || !password || !username || !role) {
+      return res.status(400).json({ message: "Falta uno o más campos requeridos" });
     }
 
-    // Asegúrate de que el rol proporcionado es válido
-    const validRoles = ['admin', 'user'];
+    const validRoles = ['user', 'admin'];
     if (!validRoles.includes(role)) {
-      return res.status(400).json({ message: 'Rol inválido' });
+      return res.status(400).json({ message: "Rol no válido" });
     }
 
-    const hashedPassword = await bcrypt.hash(password, 10);
-    const newUser = new User({ username, email, password: hashedPassword, role });
-    await newUser.save();
+    const existingUser = await User.findOne({ email });
 
-    res.status(201).json({ message: 'Usuario registrado correctamente' });
+    if (existingUser) {
+      return res.status(403).json({ message: 'El correo electrónico ya está registrado' });
+    }
+
+    const passwordHash = await bcrypt.hash(password, 10);
+    const newUser = new User({ username, email, password: passwordHash, role });
+    const userSaved = await newUser.save();
+
+    const token = createAccessToken(userSaved); // Usar el objeto usuario completo
+
+    res.cookie('token', token, {
+      httpOnly: true, // La cookie solo debe ser accesible a través del HTTP
+      secure: process.env.NODE_ENV === 'production', // Solo en HTTPS en producción
+      sameSite: 'strict', // Protección contra CSRF
+    });
+
+    const transporter = nodemailer.createTransport({
+      service: 'gmail',
+      auth: {
+        user: process.env.EMAIL_USER, // Reemplaza con tu dirección de correo electrónico
+        pass: process.env.EMAIL_PASS, // Reemplaza con tu contraseña de correo electrónico
+      },
+    });
+
+    const mailOptions = {
+      from: process.env.EMAIL_USER, // Reemplaza con tu dirección de correo electrónico
+      to: email,
+      subject: 'Registro exitoso',
+      html: `
+        <div style="font-family: Arial, sans-serif; background-color: #f4f4f4; padding: 20px;">
+          <h2 style="color: #333;">Registro completado</h2>
+          <p style="color: #555; font-size: 16px;">Bienvenido a la bolsa de trabajo</p>
+          <p style="color: #777; font-size: 14px;">Gracias por registrarte en nuestra aplicación.</p>
+        </div>
+      `,
+    };
+
+    transporter.sendMail(mailOptions, (error, info) => {
+      if (error) {
+        console.log(error);
+      } else {
+        console.log('Correo electrónico enviado: ' + info.response);
+      }
+    });
+
+    res.status(201).json({
+      id: userSaved._id,
+      username: userSaved.username,
+      email: userSaved.email,
+      role: userSaved.role,
+      message: 'Registro exitoso. Se ha enviado un correo electrónico de confirmación.',
+    });
   } catch (error) {
-    console.error('Error al registrar usuario:', error);
-    res.status(500).json({ message: 'Error interno al registrar usuario' });
+    console.log(error);
+    res.status(500).json({
+      message: 'Error en el registro de usuario. Por favor, inténtalo de nuevo.',
+    });
   }
 };
 
+// Inicio de sesión de usuario
 export const login = async (req, res) => {
   const { email, password } = req.body;
 
   try {
     const user = await User.findOne({ email });
+
     if (!user) {
+      console.log('Usuario no encontrado');
       return res.status(404).json({ message: 'Credenciales inválidas' });
     }
-
+    console.log('Datos recibidos:', { email, password ,token});
+    // Comparar la contraseña proporcionada con la almacenada en la base de datos
     const isPasswordMatch = await bcrypt.compare(password, user.password);
     if (!isPasswordMatch) {
-      return res.status(401).json({ message: 'Credenciales inválidas' });
+      console.log('Contraseña incorrecta');
+      return res.status(400).json({ message: 'Credenciales inválidas' });
     }
 
-    const accessToken = createAccessToken({ id: user._id, email: user.email, role: 'user' });
+    // Crear un token de acceso
+    const Token = createAccessToken(user); 
 
-    res.cookie('accessToken', accessToken, {
-      httpOnly: true,
-      sameSite: 'none',
-      secure: true,
-    }).json({ message: 'Inicio de sesión exitoso', token: accessToken });
+    // Configurar la cookie con el token
+    res.cookie('token', Token, {
+      httpOnly: true, // La cookie solo debe ser accesible a través del HTTP
+      secure: process.env.NODE_ENV === 'production', // Solo en HTTPS en producción
+      sameSite: 'strict', // Protección contra CSRF
+    });
+
+    // Enviar respuesta de éxito
+    res.status(200).json({ message: 'Inicio de sesión exitoso',Token});
   } catch (error) {
     console.error('Error al iniciar sesión:', error);
-    res.status(500).json({ message: 'Error interno al iniciar sesión' });
+    res.status(500).json({ message: 'Ocurrió un error al iniciar sesión.' });
   }
 };
 
+// Cierre de sesión de usuario
 export const logout = async (req, res) => {
   try {
-    res.clearCookie('accessToken').json({ message: 'Sesión cerrada correctamente' });
+    res.clearCookie('token').json({ message: 'Sesión cerrada correctamente' });
   } catch (error) {
     console.error('Error al cerrar sesión:', error);
     res.status(500).json({ message: 'Error interno al cerrar sesión' });
   }
 };
 
+// Perfil de usuario
 export const profile = async (req, res) => {
   try {
     const user = res.locals.user;
@@ -77,6 +139,7 @@ export const profile = async (req, res) => {
   }
 };
 
+// Ver todos los usuarios
 export const seeAllUsers = async (req, res) => {
   try {
     const users = await User.find({}, { password: 0, __v: 0 });
@@ -87,6 +150,7 @@ export const seeAllUsers = async (req, res) => {
   }
 };
 
+// Enviar correo electrónico
 export const sendEmail = async (req, res) => {
   const { subject, text, email } = req.body;
 
@@ -120,6 +184,7 @@ export const sendEmail = async (req, res) => {
   }
 };
 
+// Olvido de contraseña
 export const forgotPassword = async (req, res) => {
   const { email } = req.body;
 
@@ -172,6 +237,7 @@ export const forgotPassword = async (req, res) => {
   }
 };
 
+// Restablecer contraseña
 export const resetPassword = async (req, res) => {
   const { token, newPassword } = req.body;
 

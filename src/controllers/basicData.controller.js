@@ -13,9 +13,16 @@ export const createBasicData = async (req, res) => {
   }
 };
 
+
+
 // Obtener todos los datos básicos
 export const getAllBasicData = async (req, res) => {
+  const token = req.cookies.token || req.headers.authorization?.split(' ')[1]; // Buscar token en cookies o en headers
+  if (!token) {
+    return res.status(401).json({ error: 'No token provided' });
+  }
   try {
+    const decoded = jwt.verify(token, secretKey);
     const basicData = await BasicData.find();
     res.status(200).json(basicData);
   } catch (error) {
@@ -27,7 +34,7 @@ export const getAllBasicData = async (req, res) => {
 // Obtener datos básicos por ID
 export const getBasicDataById = async (req, res) => {
   try {
-    const basicData = await BasicData.findById(req.params.id);
+    const basicData = await BasicData.findById(req.params._id);
     if (!basicData) {
       return res.status(404).json({ error: "Basic data not found" });
     }
@@ -37,6 +44,18 @@ export const getBasicDataById = async (req, res) => {
     res.status(500).json({ error: "Internal server error" });
   }
 };
+export const getOptions = (req, res) => {
+  const options = {
+    experienciaLP: ['JavaScript', 'Python', 'Java'], 
+    experienciaBD: ['MySQL', 'PostgreSQL', 'MongoDB'],
+    experienciaSO: ['Windows', 'Linux', 'macOS'],
+    experienciaHG: ['JIRA', 'Trello', 'Asana']
+  };
+
+  res.json(options);
+};
+
+
 
 // Actualizar datos básicos por ID
 export const updateBasicDataById = async (req, res) => {

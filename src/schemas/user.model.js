@@ -20,24 +20,13 @@ const userSchema = new Schema({
   },
   role: {
     type: String,
-    enum: ['admin', 'user'],
+    enum: ['user'],
     default: 'user',
   },
   resetPasswordToken: String,
   resetPasswordExpires: Date,
 });
 
-userSchema.pre('save', async function (next) {
-  try {
-    if (!this.isModified('password')) {
-      return next();
-    }
-    const hashedPassword = await bcrypt.hash(this.password, 10);
-    this.password = hashedPassword;
-    return next();
-  } catch (error) {
-    return next(error);
-  }
-});
+
 
 export default mongoose.model('User', userSchema);

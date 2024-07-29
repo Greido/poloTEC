@@ -21,8 +21,8 @@ const enterpriseSchema = new mongoose.Schema({
   },
   role: {
     type: String,
-    enum: ['admin', 'ent'],
-    default: 'ent', 
+    enum: ['enterprise'],
+    default: 'enterprise', 
   },
   resetPasswordToken: String,
   resetPasswordExpires: Date,
