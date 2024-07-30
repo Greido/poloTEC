@@ -3,7 +3,6 @@ import { verifyToken } from '../libs/jwt.js';
 import User from '../schemas/user.model.js';
 import Enterprise from '../schemas/enterprise.model.js';
 
-
 export const validateRequired = async (req, res, next) => {
   // Obtén el token desde cookies o headers
   const token = req.cookies?.token || req.headers.authorization?.split(' ')[1];
@@ -15,30 +14,30 @@ export const validateRequired = async (req, res, next) => {
   try {
     // Verifica y decodifica el token
     const decoded = verifyToken(token);
-    console.log('Decoded token:', decoded); // Verifica el contenido del token
+    console.log('Token decodificado:', decoded); // Verifica el contenido del token
 
     // Guarda el token decodificado en res.locals para su uso posterior
-    res.cookies.decoded = decoded;
+    res.locals.decoded = decoded;
 
     // Lógica basada en el rol del usuario
     if (decoded.role === 'user') {
-      console.log('Searching for user with ID:', decoded.id);
+      console.log('Buscando usuario con ID:', decoded.id);
       const user = await User.findById(decoded.id);
       if (!user) {
-        console.log('User not found in the database.');
+        console.log('Usuario no encontrado en la base de datos.');
         return res.status(404).json({ message: 'Usuario no encontrado' });
       }
-      res.local.user = user;
-      console.log('User found:', user);
+      res.locals.user = user;
+      console.log('Usuario encontrado:', user);
     } else if (decoded.role === 'enterprise') {
-      console.log('Searching for enterprise with ID:', decoded.id);
+      console.log('Buscando empresa con ID:', decoded.id);
       const enterprise = await Enterprise.findById(decoded.id);
       if (!enterprise) {
-        console.log('Enterprise not found in the database.');
+        console.log('Empresa no encontrada en la base de datos.');
         return res.status(404).json({ message: 'Empresa no encontrada' });
       }
-      res.local.enterprise = enterprise;
-      console.log('Enterprise found:', enterprise);
+      res.locals.enterprise = enterprise;
+      console.log('Empresa encontrada:', enterprise);
     } else {
       console.log('Rol inválido:', decoded.role);
       return res.status(403).json({ message: 'Rol inválido' });

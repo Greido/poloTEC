@@ -3,8 +3,6 @@ import nodemailer from 'nodemailer';
 import crypto from 'crypto';
 import User from '../schemas/user.model.js';
 import { createAccessToken } from '../libs/jwt.js';
-import { token } from 'morgan';
-
 // Registro de usuario
 export const register = async (req, res) => {
   const { email, password, username, role } = req.body;
@@ -29,24 +27,16 @@ export const register = async (req, res) => {
     const newUser = new User({ username, email, password: passwordHash, role });
     const userSaved = await newUser.save();
 
-    const token = createAccessToken(userSaved); // Usar el objeto usuario completo
-
-    res.cookie('token', token, {
-      httpOnly: true, // La cookie solo debe ser accesible a través del HTTP
-      secure: process.env.NODE_ENV === 'production', // Solo en HTTPS en producción
-      sameSite: 'strict', // Protección contra CSRF
-    });
-
     const transporter = nodemailer.createTransport({
       service: 'gmail',
       auth: {
-        user: process.env.EMAIL_USER, // Reemplaza con tu dirección de correo electrónico
-        pass: process.env.EMAIL_PASS, // Reemplaza con tu contraseña de correo electrónico
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_PASS,
       },
     });
 
     const mailOptions = {
-      from: process.env.EMAIL_USER, // Reemplaza con tu dirección de correo electrónico
+      from: process.env.EMAIL_USER,
       to: email,
       subject: 'Registro exitoso',
       html: `
@@ -89,29 +79,21 @@ export const login = async (req, res) => {
     const user = await User.findOne({ email });
 
     if (!user) {
-      console.log('Usuario no encontrado');
       return res.status(404).json({ message: 'Credenciales inválidas' });
     }
-    console.log('Datos recibidos:', { email, password ,token});
-    // Comparar la contraseña proporcionada con la almacenada en la base de datos
+
     const isPasswordMatch = await bcrypt.compare(password, user.password);
     if (!isPasswordMatch) {
-      console.log('Contraseña incorrecta');
       return res.status(400).json({ message: 'Credenciales inválidas' });
     }
 
-    // Crear un token de acceso
-    const Token = createAccessToken(user); 
+    const token = createAccessToken(user);
 
-    // Configurar la cookie con el token
-    res.cookie('token', Token, {
-      httpOnly: true, // La cookie solo debe ser accesible a través del HTTP
-      secure: process.env.NODE_ENV === 'production', // Solo en HTTPS en producción
-      sameSite: 'strict', // Protección contra CSRF
+    res.cookie('token', token, {
+     
     });
 
-    // Enviar respuesta de éxito
-    res.status(200).json({ message: 'Inicio de sesión exitoso',Token});
+    res.status(200).json({ message: 'Inicio de sesión exitoso', token });
   } catch (error) {
     console.error('Error al iniciar sesión:', error);
     res.status(500).json({ message: 'Ocurrió un error al iniciar sesión.' });

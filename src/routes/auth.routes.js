@@ -17,8 +17,8 @@ router.post('/register', register);
 router.post('/login',  login);
 router.post('/logout', validateRequired, logout);
 
-router.get('/profile', profile);
-router.get('/allUsers', seeAllUsers);
+router.get('/profile',validateRequired, profile);
+router.get('/allUsers',validateRequired, seeAllUsers);
 router.post('/send-email', sendEmail);
 
 router.post('/forgot-password', forgotPassword);

@@ -19,7 +19,7 @@ router.post("/createBasicData", createBasicData);
 router.get("/getallBD",validateRequired, getAllBasicData);
 
 // Obtener un dato básico por ID
-router.get("/getoneBD/:id", getBasicDataById);
+router.get("/getoneBD/:id",validateRequired, getBasicDataById);
 
 router.get('/options', getOptions);
 
