@@ -57,16 +57,26 @@ export const getAllBasicData = async (req, res) => {
 
 // Obtener datos básicos por ID
 export const getBasicDataById = async (req, res) => {
+  const { id } = req.params; // El ID del usuario viene como parámetro en la URL
+
   try {
-    const basicData = await BasicData.findById(req.params._id);
-    if (!basicData) {
-      return res.status(404).json({ error: "Basic data not found" });
+    // Verifica si el usuario existe
+    const user = await User.findById(id);
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
     }
+
+    // Encuentra los datos básicos asociados al usuario
+    const basicData = await BasicData.findOne({ user: id });
+    if (!basicData) {
+      return res.status(404).json({ error: "Basic data not found for this user" });
+    }
+
     res.status(200).json(basicData);
   } catch (error) {
-    console.error("Error fetching basic data:", error);
-    res.status(500).json({ error: "Internal server error" });
-  }
+    console.error("Error fetching basic data by user ID:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
 };
 export const getOptions = (req, res) => {
   const options = {
