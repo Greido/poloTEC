@@ -2,6 +2,9 @@ import bcrypt from 'bcryptjs';
 import nodemailer from 'nodemailer';
 import crypto from 'crypto';
 import User from '../schemas/user.model.js';
+import multer from 'multer';
+import path from 'path';
+import { fileURLToPath } from 'url'; // Asegúrate de importar fileURLToPath
 import { createAccessToken } from '../libs/jwt.js';
 // Registro de usuario
 export const register = async (req, res) => {
@@ -89,11 +92,13 @@ export const login = async (req, res) => {
 
     const token = createAccessToken(user);
 
-    res.cookie('token', token, {
-     
-    });
 
-    res.status(200).json({ message: 'Inicio de sesión exitoso', token });
+    res.cookie('token', token, { httpOnly: false, secure: false , sameSite: 'Strict'});
+   
+
+   
+
+    res.status(200).json({ message: 'Inicio de sesión exitoso', token, role: user.role });
   } catch (error) {
     console.error('Error al iniciar sesión:', error);
     res.status(500).json({ message: 'Ocurrió un error al iniciar sesión.' });
@@ -113,7 +118,7 @@ export const logout = async (req, res) => {
 // Perfil de usuario
 export const profile = async (req, res) => {
   try {
-    const user = res.locals.user;
+    const user = await User.findById(res.locals.user._id).populate('BasicData');
     res.status(200).json(user);
   } catch (error) {
     console.error('Error al obtener perfil de usuario:', error);
@@ -246,3 +251,43 @@ export const resetPassword = async (req, res) => {
     res.status(500).json({ message: 'Error interno al restablecer la contraseña' });
   }
 };
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+// Configuración de Multer para guardar imágenes
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    const dir = path.join(__dirname, '../uploads/avatars'); // Ruta correcta
+    cb(null, dir);
+  },
+  filename: (req, file, cb) => {
+    cb(null, `${Date.now()}-${file.originalname}`); // Asigna un nombre único al archivo
+  },
+});
+
+// Crear el middleware de carga de archivos
+const upload = multer({ storage });
+
+// Controlador para subir avatar
+export const uploadAvatar = async (req, res) => {
+  try {
+    // Verifica que se haya subido un archivo
+    if (!req.file) {
+      return res.status(400).json({ message: 'No se ha subido ninguna imagen.' });
+    }
+
+    const userId = req.user.id; // Asegúrate de que el usuario esté autenticado
+    const avatarPath = `/uploads/avatars/${req.file.filename}`; // Ruta de la imagen
+
+    // Actualizar la ruta del avatar en la base de datos
+    await User.findByIdAndUpdate(userId, { avatar: avatarPath });
+
+    res.status(200).json({ message: 'Avatar subido correctamente', avatar: avatarPath });
+  } catch (error) {
+    console.error('Error al subir el avatar:', error);
+    res.status(500).json({ message: 'Error interno al subir el avatar' });
+  }
+};
+
+// Exporta el middleware y el controlador
+export { upload};

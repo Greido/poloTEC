@@ -1,5 +1,4 @@
 import mongoose from 'mongoose';
-import bcrypt from 'bcryptjs';
 
 const { Schema } = mongoose;
 
@@ -23,6 +22,12 @@ const userSchema = new Schema({
     enum: ['user'],
     default: 'user',
   },
+  avatar: { type: String },
+  baseDataId: {
+     type: mongoose.Schema.Types.ObjectId, 
+     ref: 'BasicData'
+     },
+     
   resetPasswordToken: String,
   resetPasswordExpires: Date,
 });

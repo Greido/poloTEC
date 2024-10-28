@@ -83,33 +83,39 @@ export const enterpriseLogin = async (req, res) => {
   const { email, password } = req.body;
 
   try {
-    const enterpriseFound = await Enterprise.findOne({ email });
+    // Buscar la empresa por el correo electrónico
+    const enterprise = await Enterprise.findOne({ email });
 
-    if (!enterpriseFound) {
-      return res.status(404).json({ message: "Empresa no encontrada" });
+    // Comprobar si la empresa fue encontrada
+    if (!enterprise) {
+      return res.status(404).json({ message: 'Credenciales inválidas' });
     }
 
-    const passwordMatch = await bcrypt.compare(password, enterpriseFound.password);
+    // Comparar la contraseña proporcionada con la almacenada en la base de datos
+    const passwordMatch = await bcrypt.compare(password, enterprise.password);
 
+    // Comprobar si la contraseña es correcta
     if (!passwordMatch) {
-      return res.status(400).json({ message: "Contraseña incorrecta" });
+      return res.status(400).json({ message: 'Credenciales inválidas' });
     }
 
-    // Incluir el rol en la información del token JWT
-    const token = createAccessToken({ id: enterpriseFound._id, role: '' });
-    res.cookie('token', token, {
-      httpOnly: true, // La cookie solo debe ser accesible a través del HTTP
-      secure: process.env.NODE_ENV === 'production', // Solo en HTTPS en producción
-      sameSite: 'strict', // Protección contra CSRF
+    // Generar el token JWT incluyendo el rol de la empresa
+    const token = createAccessToken(enterprise);
+
+    // Configurar la cookie del token
+    res.cookie('token', token, { 
+      httpOnly: false, // Cambia a true en producción
+      secure: false,   // Cambiar a true en producción si usas HTTPS
+      sameSite: 'Strict' // Protección contra CSRF
     });
 
-    res.status(200).json({ message: "Inicio de sesión exitoso", token });
+    // Devolver una respuesta exitosa
+    res.status(200).json({ message: 'Inicio de sesión exitoso', token, role: enterprise.role });
   } catch (error) {
-    console.error("Error al iniciar sesión:", error);
-    res.status(500).json({ message: "Ocurrió un error al iniciar sesión." });
+    console.error('Error al iniciar sesión:', error);
+    res.status(500).json({ message: 'Ocurrió un error al iniciar sesión.' });
   }
 };
-
 export const enterpriseLogout = async (req, res) => {
   try {
     // Limpiar la cookie del token
